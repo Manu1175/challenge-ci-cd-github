@@ -7,6 +7,9 @@ on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches: [ "main" ]
+    # to define a new release
+    tags:
+      - "*.*.*"
   pull_request:
     branches: [ "main" ]
 
@@ -55,3 +58,18 @@ jobs:
 
       - name: Run Pytest
         run: pytest
+
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install .[build]
+    - name: Build package
+      run: python -m build
