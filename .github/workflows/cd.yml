@@ -11,60 +11,69 @@ on:
   pull_request:
     branches:
       - dev
-      - qa
+      - qa 
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     environment: ${{ github.ref_name }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            libjpeg-dev \
-            zlib1g-dev \
-            libpng-dev \
-            libtiff-dev \
-            libwebp-dev \
-            libopenjp2-7-dev \
-            libfreetype6-dev \
-            liblcms2-dev \
-            libffi-dev \
-            libharfbuzz-dev \
-            libfribidi-dev \
-            libxcb1-dev \
-            pkg-config \
-            git
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install dependencies
+      - name: Install system dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install ruff
+          sudo apt-get update
+          sudo apt-get install -y \
+            libjpeg-dev \
+            zlib1g-dev \
+            libtiff-dev \
+            libpng-dev \
+            libfreetype6-dev \
+            liblcms2-dev \
+            libwebp-dev \
+            tcl8.6-dev \
+            tk8.6-dev \
+            python3-tk \
+            git \
+            build-essential \
+            libffi-dev \
+            libssl-dev
+
+      - name: Install Python dependencies
+        run: pip install --upgrade pip && pip install -r requirements.txt
 
       - name: Run Ruff linting
-        continue-on-error: true
-        run: |
-          echo "🔍 Running Ruff linter..."
-          ruff check .
-          echo "✅ Ruff linting completed."
-
-      - name: Deploy Streamlit app
         uses: streamlit/streamlit-app-action@v0.0.3
         with:
           app-path: streamlit_app.py
-        env:
-          APP_ENV: ${{ github.ref_name == 'main' && 'Prod' || github.ref_name == 'qa' && 'QA' || 'Dev' }}
-          APP_KEY: ${{ github.ref_name == 'main' && secrets.PROD_API_KEY || github.ref_name == 'qa' && secrets.QA_API_KEY || secrets.DEV_API_KEY }}
+          ruff: true
+
+      - name: Run tests
+        run: pytest --disable-warnings
+
+      - name: Deploy to environment
+        run: |
+          if [ "${{ github.ref_name }}" == "main" ]; then
+            export APP_ENV="prod"
+            export APP_KEY="${{ secrets.PROD_API_KEY }}"
+          elif [ "${{ github.ref_name }}" == "qa" ]; then
+            export APP_ENV="qa"
+            export APP_KEY="${{ secrets.QA_API_KEY }}"
+          else
+            export APP_ENV="dev"
+            export APP_KEY="${{ secrets.DEV_API_KEY }}"
+          fi
+
+          streamlit run app/main.py &
+
+          echo "🚀 Deployed to '${APP_ENV}'"
+          echo "🔑 Using credentials for ${APP_ENV} (hidden)"
