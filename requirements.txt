@@ -1,3 +1,11 @@
-streamlit
-pytest
-ruff
+# Streamlit for the sample app
+streamlit==1.25.0
+
+# Pytest for testing
+pytest==7.4.0
+
+# Ruff for linting
+ruff==0.0.300
+
+# Optional: for handling environment variables more easily (like secrets)
+python-dotenv==1.1.1
