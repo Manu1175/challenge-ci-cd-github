@@ -2,7 +2,6 @@
 
 name: CD
 
-# Controls when the workflow will run
 on:
   push:
     branches:
@@ -12,15 +11,12 @@ on:
   pull_request:
     branches:
       - dev
-      - qa 
+      - qa
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
-    # Bind deployment to the GitHub Environment (Dev, QA, Prod)
-    # This makes "Prod" require approval if configured in repo settings
     environment: ${{ github.ref_name }}
 
     steps:
@@ -33,28 +29,21 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install streamlit
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff  # ensure Ruff is installed
 
       - name: Run Ruff linting
-        run: ruff check .
-
-      - name: Deploy to environment
         run: |
-          if [ "${{ github.ref_name }}" == "main" ]; then
-            export APP_ENV="Prod"
-            export APP_KEY="${{ secrets.PROD_API_KEY }}"
-          elif [ "${{ github.ref_name }}" == "qa" ]; then
-            export APP_ENV="QA"
-            export APP_KEY="${{ secrets.QA_API_KEY }}"
-          else
-            export APP_ENV="Dev"
-            export APP_KEY="${{ secrets.DEV_API_KEY }}"
-          fi
-
-          echo "🚀 Deployed to '${APP_ENV}'"
-          echo "🔑 Using credentials for ${APP_ENV} (hidden)"
+          echo "🔍 Running Ruff linter..."
+          ruff check .
+          echo "✅ Ruff linting completed."
 
       - name: Deploy Streamlit app
         uses: streamlit/streamlit-app-action@v0.0.3
         with:
           app-path: streamlit_app.py
+        env:
+          APP_ENV: ${{ github.ref_name == 'main' && 'Prod' || github.ref_name == 'qa' && 'QA' || 'Dev' }}
+          APP_KEY: ${{ github.ref_name == 'main' && secrets.PROD_API_KEY || github.ref_name == 'qa' && secrets.QA_API_KEY || secrets.DEV_API_KEY }}
