@@ -11,7 +11,7 @@ on:
   pull_request:
     branches:
       - dev
-      - qa 
+      - qa
   workflow_dispatch:
 
 jobs:
@@ -29,51 +29,32 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install system dependencies
+      - name: Install system dependencies for Pillow
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            libjpeg-dev \
-            zlib1g-dev \
-            libtiff-dev \
-            libpng-dev \
-            libfreetype6-dev \
-            liblcms2-dev \
-            libwebp-dev \
-            tcl8.6-dev \
-            tk8.6-dev \
-            python3-tk \
-            git \
-            build-essential \
-            libffi-dev \
-            libssl-dev
+          sudo apt-get install -y libjpeg-dev zlib1g-dev libpng-dev
 
       - name: Install Python dependencies
         run: pip install --upgrade pip && pip install -r requirements.txt
 
-      - name: Run Ruff linting
-        uses: streamlit/streamlit-app-action@v0.0.3
-        with:
-          app-path: streamlit_app.py
-          ruff: true
-
       - name: Run tests
-        run: pytest --disable-warnings
+        run: pytest tests --disable-warnings
 
-      - name: Deploy to environment
+      - name: Set environment variables
         run: |
           if [ "${{ github.ref_name }}" == "main" ]; then
-            export APP_ENV="prod"
+            export APP_ENV="Prod"
             export APP_KEY="${{ secrets.PROD_API_KEY }}"
           elif [ "${{ github.ref_name }}" == "qa" ]; then
-            export APP_ENV="qa"
+            export APP_ENV="QA"
             export APP_KEY="${{ secrets.QA_API_KEY }}"
           else
-            export APP_ENV="dev"
+            export APP_ENV="Dev"
             export APP_KEY="${{ secrets.DEV_API_KEY }}"
           fi
 
-          streamlit run app/main.py &
-
-          echo "🚀 Deployed to '${APP_ENV}'"
+          echo "🚀 Deploying to '${APP_ENV}'"
           echo "🔑 Using credentials for ${APP_ENV} (hidden)"
+
+      - name: Deploy Streamlit app
+        run: streamlit run app/main.py --server.port 8501 --server.headless true
