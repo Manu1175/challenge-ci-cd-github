@@ -17,7 +17,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     environment: ${{ github.ref_name }}
 
     steps:
@@ -29,13 +28,19 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install system dependencies for Pillow
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libjpeg-dev zlib1g-dev libpng-dev
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
-      - name: Install Python dependencies
-        run: pip install --upgrade pip && pip install -r requirements.txt
+      - name: Install system dependencies and Python packages
+        run: |
+          sudo apt-get update && sudo apt-get install -y libjpeg-dev zlib1g-dev libpng-dev
+          pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Run tests
         run: pytest tests --disable-warnings
@@ -52,9 +57,7 @@ jobs:
             export APP_ENV="Dev"
             export APP_KEY="${{ secrets.DEV_API_KEY }}"
           fi
-
           echo "🚀 Deploying to '${APP_ENV}'"
-          echo "🔑 Using credentials for ${APP_ENV} (hidden)"
 
       - name: Deploy Streamlit app
         run: streamlit run app/main.py --server.port 8501 --server.headless true
