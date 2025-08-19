@@ -1,31 +1,16 @@
-# This is a basic workflow to help you get started with Actions
+name: CI - Main / Prod
 
-name: CI
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
-    # to define a new release
-    tags:
-      - "*.*.*"
   pull_request:
     branches: [ "main" ]
-
-  # Keeps workflows shorter e.g. repeating testing
-  workflow_call:
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-   build-and-test:
+  build-and-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.12"]  # only test with Python 3.12 for prod
 
     steps:
       - name: Checkout code
@@ -34,7 +19,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
           cache: "pip"
 
       - name: Install dependencies
@@ -45,11 +30,20 @@ jobs:
       - name: Run Ruff
         run: ruff check --output-format=github
 
-      - name: Run Pytest
-        run: pytest --junitxml=results.xml
+      - name: Run Pytest (Prod)
+        run: pytest -m "prod" --junitxml=results.xml
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: results.xml
+
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            dist/
+            build/
