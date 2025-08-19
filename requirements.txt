@@ -1,4 +1,4 @@
-# Streamlit for the sample app
+# Streamlit for the sample app to work
 streamlit≥1.29.0.
 
 # Pytest for testing
