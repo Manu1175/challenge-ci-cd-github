@@ -15,9 +15,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  test-before-deploy:
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name }}
 
     steps:
       - name: Checkout code
@@ -36,28 +35,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: Install system dependencies and Python packages
+      - name: Install dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y libjpeg-dev zlib1g-dev libpng-dev
-          pip install --upgrade pip
+          pip install --upgrade pip setuptools wheel
           pip install -r requirements.txt
+          pip install ruff pytest
+
+      - name: Run Ruff linting
+        run: |
+          echo "🔍 Running Ruff linting..."
+          ruff check app tests
 
       - name: Run tests
         run: pytest tests --disable-warnings
-
-      - name: Set environment variables
-        run: |
-          if [ "${{ github.ref_name }}" == "main" ]; then
-            export APP_ENV="Prod"
-            export APP_KEY="${{ secrets.PROD_API_KEY }}"
-          elif [ "${{ github.ref_name }}" == "qa" ]; then
-            export APP_ENV="QA"
-            export APP_KEY="${{ secrets.QA_API_KEY }}"
-          else
-            export APP_ENV="Dev"
-            export APP_KEY="${{ secrets.DEV_API_KEY }}"
-          fi
-          echo "🚀 Deploying to '${APP_ENV}'"
-
-      - name: Deploy Streamlit app
-        run: streamlit run app/main.py --server.port 8501 --server.headless true
