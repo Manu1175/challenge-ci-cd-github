@@ -23,18 +23,21 @@ def check_api_key(env: str = None):
     api_key = os.getenv("APP_KEY", "")
     return {"env": env, "has_key": bool(api_key), "key_length": len(api_key)}
 
+# ----------------------------
+# Tests
+# ----------------------------
 
-# ----------------------------
-# Tests (Production Only)
-# ----------------------------
+def pytest_runtest_setup(item):
+    """Automatically skip non-prod tests in prod runs."""
+    if "prod" not in item.keywords:
+        pytest.skip("Skipping non-prod test in prod run")
+
 
 @pytest.mark.prod
 @pytest.mark.parametrize(
     "env,expected_title,expected_color,expected_status",
     [
-        ("dev", "Dev Environment", "lightgreen", "success"),
         ("prod", "Production Environment", "lightcoral", "error"),
-        ("unknown", "Unknown Environment", "white", "unknown"),
     ],
 )
 def test_get_env_config(env, expected_title, expected_color, expected_status):

@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.12"]  # only test with Python 3.12 for prod
+        python-version: ["3.12"]
 
     steps:
       - name: Checkout code
@@ -30,20 +30,26 @@ jobs:
       - name: Run Ruff
         run: ruff check --output-format=github
 
-      - name: Ensure tests folder exists
-        run: mkdir -p tests
-
       - name: Run Pytest (Prod)
-        run: pytest -m "prod" --junitxml=tests/results.xml || true
+        run: |
+          mkdir -p tests
+          # Run only prod tests, show skipped tests in XML
+          pytest -m "prod" --junitxml=tests/results.xml --tb=short --maxfail=1 --skip-show
 
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
+
+      - name: Upload test results to GitHub UI
+        uses: actions/upload-test-report@v3
         with:
-          name: test-results
-          path: tests/results.xml
+          test-results-format: 'JUnit'
+          test-results-files: 'tests/results.xml'
+
+      - name: Create dummy build artifacts
+        run: |
+          mkdir -p dist build
+          echo "dummy file" > dist/dummy.txt
+          echo "dummy file" > build/dummy.txt
 
       - name: Upload build artifacts
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
