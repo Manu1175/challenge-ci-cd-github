@@ -77,3 +77,13 @@ Testing is done through pytest:
 ![alt text](img/image.png)
 ![alt text](img/image-1.png)
 
+Once deployed, log message appears:
+![alt text](img/log_deployed.png)
+![alt text](img/log_depl_qa.png)
+![alt text](img/log_depl_dev.png)
+
+Environment has been set-up:
+![alt text](img/env_prod_qa_dev.png)
+![alt text](img/secrets_keys.png)
+
+Both APP_ENV and APP_KEY have been provided in Streamlit Cloud.
