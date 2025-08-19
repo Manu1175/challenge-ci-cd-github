@@ -29,7 +29,7 @@ jobs:
             --tb=short
 
       - name: Upload test report artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: prod-test-report
           path: prod-test-report.xml
