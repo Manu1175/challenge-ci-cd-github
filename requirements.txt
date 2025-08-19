@@ -1,5 +1,5 @@
 # Streamlit for the sample app
-streamlit==1.25.0
+streamlit≥1.29.0.
 
 # Pytest for testing
 pytest==7.4.0
