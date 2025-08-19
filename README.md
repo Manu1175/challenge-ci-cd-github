@@ -77,6 +77,12 @@ Testing is done through pytest:
 ![alt text](img/image.png)
 ![alt text](img/image-1.png)
 
+Linting is applied through Ruff in deployment checks:
+![alt text](img/Linting.png)
+
+Test report artifact is loaded during CI:
+![alt text](img/test_artifact.png) 
+
 Once deployed, log message appears:
 ![alt text](img/log_deployed.png)
 ![alt text](img/log_depl_qa.png)
