@@ -8,11 +8,16 @@ on:
       - main
       - dev
       - qa
+  pull_request:
+    branches:
+      - dev
+      - qa
   workflow_dispatch:
 
 jobs:
-  test-before-deploy:
+  test-and-deploy:
     runs-on: ubuntu-latest
+    environment: ${{ github.ref_name }}
 
     steps:
       - name: Checkout code
@@ -44,3 +49,19 @@ jobs:
 
       - name: Run tests
         run: pytest tests --disable-warnings
+
+      - name: Deploy to environment
+        run: |
+          if [ "${{ github.ref_name }}" == "main" ]; then
+            export APP_ENV="Prod"
+            export APP_KEY="${{ secrets.PROD_API_KEY }}"
+          elif [ "${{ github.ref_name }}" == "qa" ]; then
+            export APP_ENV="QA"
+            export APP_KEY="${{ secrets.QA_API_KEY }}"
+          else
+            export APP_ENV="Dev"
+            export APP_KEY="${{ secrets.DEV_API_KEY }}"
+          fi
+
+          echo "🚀 Deployed to '${APP_ENV}'"
+          echo "🔑 Using credentials for ${APP_ENV} (hidden)"
