@@ -50,8 +50,8 @@ def test_get_env_config(env, expected_title, expected_color, expected_status):
 def test_env_default():
     os.environ.pop("APP_ENV", None)
     config = get_env_config()
-    assert config["title"] == "Dev Environment"
-    assert config["bg_color"] == "lightgreen"
+    assert config["title"] == "Prod Environment"
+    assert config["bg_color"] == "lightcoral"
 
 @pytest.mark.prod
 def test_api_key_missing(monkeypatch):

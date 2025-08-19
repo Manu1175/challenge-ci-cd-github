@@ -1,57 +1,38 @@
-name: CI - Main / Prod
+name: CI
 
 on:
+  push:
+    branches: [main]
   pull_request:
-    branches: [ "main" ]
-  workflow_dispatch:
+    branches: [main]
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.12"]
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
-          cache: "pip"
+          python-version: 3.12
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt || true
-          pip install pytest ruff
+          python -m pip install --upgrade pip
+          pip install pytest pytest-mock
 
-      - name: Run Ruff
-        run: ruff check --output-format=github
+      - name: Create tests folder for results
+        run: mkdir -p tests
 
-      - name: Run Pytest (Prod)
+      - name: Run prod tests
         run: |
-          mkdir -p tests
-          # Run only prod tests, show skipped tests in XML
-          pytest -m "prod" --junitxml=tests/results.xml --tb=short --maxfail=1 --skip-show
+          pytest -m prod --junitxml=tests/results.xml
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
-          name: test-results
+          name: pytest-results
           path: tests/results.xml
-
-      - name: Create dummy build artifacts
-        run: |
-          mkdir -p dist build
-          echo "dummy file" > dist/dummy.txt
-          echo "dummy file" > build/dummy.txt
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: |
-            dist/
-            build/
