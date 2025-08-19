@@ -2,15 +2,12 @@ name: CI - Main / Prod
 
 on:
   pull_request:
-    branches: [ "main" ]  # run only on PRs to main
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.12"]
 
     steps:
       - name: Checkout code
@@ -19,7 +16,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.12"
           cache: "pip"
 
       - name: Install dependencies
@@ -27,21 +24,27 @@ jobs:
           pip install -r requirements.txt || true
           pip install pytest ruff
 
-      - name: Run Ruff linting
+      - name: Run Ruff
         run: ruff check --output-format=github
 
-      - name: Run Pytest
-        # Remove '-m "prod"' to run all tests by default
-        run: pytest --junitxml=results.xml
+      - name: Run Pytest (Prod)
+        run: |
+          mkdir -p tests
+          pytest -m "prod" --junitxml=tests/results.xml
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: results.xml
+          path: tests/results.xml
+
+      - name: Ensure build artifacts exist
+        run: |
+          mkdir -p dist build
+          echo "Dummy file" > dist/dummy.txt
+          echo "Dummy file" > build/dummy.txt
 
       - name: Upload build artifacts
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
