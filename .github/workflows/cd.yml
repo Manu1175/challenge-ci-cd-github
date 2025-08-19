@@ -52,13 +52,13 @@ jobs:
       - name: Deploy to environment
         run: |
           if [ "${{ github.ref_name }}" == "main" ]; then
-            export APP_ENV="Prod"
+            export APP_ENV="prod"
             export APP_KEY="${{ secrets.PROD_API_KEY }}"
           elif [ "${{ github.ref_name }}" == "qa" ]; then
-            export APP_ENV="QA"
+            export APP_ENV="qa"
             export APP_KEY="${{ secrets.QA_API_KEY }}"
           else
-            export APP_ENV="Dev"
+            export APP_ENV="dev"
             export APP_KEY="${{ secrets.DEV_API_KEY }}"
           fi
 
