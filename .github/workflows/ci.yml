@@ -36,12 +36,11 @@ jobs:
           # Run only prod tests, show skipped tests in XML
           pytest -m "prod" --junitxml=tests/results.xml --tb=short --maxfail=1 --skip-show
 
-
-      - name: Upload test results to GitHub UI
-        uses: actions/upload-test-report@v3
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
         with:
-          test-results-format: 'JUnit'
-          test-results-files: 'tests/results.xml'
+          name: test-results
+          path: tests/results.xml
 
       - name: Create dummy build artifacts
         run: |
