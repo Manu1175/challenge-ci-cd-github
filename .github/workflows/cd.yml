@@ -2,7 +2,6 @@
 
 name: CD
 
-# Controls when the workflow will run
 on:
   push:
     branches:
@@ -12,16 +11,14 @@ on:
   pull_request:
     branches:
       - dev
-      - qa 
+      - qa
   workflow_dispatch:
 
 jobs:
-  deploy:
+  test-and-deploy:
     runs-on: ubuntu-latest
-
-    # Bind deployment to the GitHub Environment (Dev, QA, Prod)
-    # This makes "Prod" require approval if configured in repo settings
-    environment: ${{ github.ref_name }}
+    # Map branch names to GitHub Environments
+    environment: ${{ github.ref_name == 'main' && 'prod' || github.ref_name == 'qa' && 'QA' || 'dev' }}
 
     steps:
       - name: Checkout code
@@ -32,8 +29,28 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Install dependencies
-        run: pip install streamlit
+        run: |
+          pip install --upgrade pip
+          # Only install compatible packages; skip pillow if not needed
+          pip install -r requirements.txt
+          pip install ruff pytest
+
+      - name: Run Ruff linting
+        run: |
+          echo "🔍 Running Ruff linting..."
+          ruff check app tests
+
+      - name: Run tests
+        run: pytest tests --disable-warnings
 
       - name: Deploy to environment
         run: |
