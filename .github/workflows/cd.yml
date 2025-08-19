@@ -6,6 +6,8 @@ on:
   push:
     branches:
       - main
+      - dev
+      - qa
   workflow_dispatch:
 
 jobs:
