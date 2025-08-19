@@ -50,20 +50,23 @@ pytest tests/
 
 ## 🚀 Deployment
 
-The deployment process is automated via GitHub Actions. Upon pushing changes to the main branch, the CI/CD pipeline will:
+The deployment process is automated via GitHub Actions. Upon pushing changes to the main, qa, dev branches, the CD pipeline will:
 
-1. Run tests to verify code integrity.
-2. Deploy the application to the specified environment.
+1. Install python and dependencies
+2. Lint with ruff
+3. Runs tests
+4. Deploy the application to the specified environment. Selects correct environment and secrets depending on branch. Echoes deployment message.
 
+The CI will on a pull request from a branch to main trigger:
+
+1. Build python and dependencies
+2. Run tests to verify code integrity.
+   
 This project is also deployed on **Streamlit Cloud**:
 
 - **Production (main)**: [challenge-ci-cd-github ∙ main ∙ app/main.py](https://challenge-ci-cd-app-main.streamlit.app/)
 - **QA (qa)**: [challenge-ci-cd-github ∙ qa ∙ app/main.py](https://challenge-ci-cd-app-quality-assurance.streamlit.app/)
 - **Development (dev)**: [challenge-ci-cd-github ∙ dev ∙ app/main.py](https://challenge-ci-cd-app-dev.streamlit.app/)
-
-## 🔧 Customizing Workflows
-
-The CI/CD workflows are defined in `.github/workflows/ci-cd.yml`. You can customize the pipeline by modifying this file to suit your specific deployment needs.
 
 ## Visuals
 
