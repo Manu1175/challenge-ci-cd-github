@@ -25,9 +25,10 @@ def check_api_key(env: str = None):
 
 
 # ----------------------------
-# Tests
+# Tests (Production Only)
 # ----------------------------
 
+@pytest.mark.prod
 @pytest.mark.parametrize(
     "env,expected_title,expected_color,expected_status",
     [
@@ -42,14 +43,14 @@ def test_get_env_config(env, expected_title, expected_color, expected_status):
     assert config["bg_color"] == expected_color
     assert config["status"] == expected_status
 
-
+@pytest.mark.prod
 def test_env_default():
     os.environ.pop("APP_ENV", None)
     config = get_env_config()
     assert config["title"] == "Dev Environment"
     assert config["bg_color"] == "lightgreen"
 
-
+@pytest.mark.prod
 def test_api_key_missing(monkeypatch):
     monkeypatch.delenv("APP_KEY", raising=False)
     result = check_api_key("prod")
@@ -57,7 +58,7 @@ def test_api_key_missing(monkeypatch):
     assert not result["has_key"]
     assert result["key_length"] == 0
 
-
+@pytest.mark.prod
 def test_api_key_present(monkeypatch):
     monkeypatch.setenv("APP_KEY", "dummy-secret-key")
     result = check_api_key("prod")
