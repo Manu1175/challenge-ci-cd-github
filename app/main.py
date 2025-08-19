@@ -1,32 +1,43 @@
 import streamlit as st
 import os
 
-env = os.getenv("APP_ENV", "dev")  # default Dev
-api_key = os.getenv("APP_KEY", "no-key")  # injected from GitHub secrets
+# Get environment variables
+env = os.getenv("APP_ENV", "dev").lower()  # default "dev"
+api_key = os.getenv("APP_KEY", "")
+
+# Page configuration and background color
+bg_color = "white"
+page_title = "Unknown Environment"
 
 if env == "dev":
-    st.set_page_config(page_title="Dev Environment")
-    st.markdown("<body style='background-color: lightgreen;'></body>", unsafe_allow_html=True)
+    page_title = "Dev Environment"
+    bg_color = "lightgreen"
     st.title("🚧 Development Environment")
-    st.success("✅ Connected with API Key for Dev")
+    st.success("✅ Connected to Dev environment")
 
 elif env == "qa":
-    st.set_page_config(page_title="QA Environment")
-    st.markdown("<body style='background-color: lightyellow;'></body>", unsafe_allow_html=True)
+    page_title = "QA Environment"
+    bg_color = "lightyellow"
     st.title("🧪 QA Environment")
-    st.warning("✅ Connected with API Key for QA")
+    st.warning("✅ Connected to QA environment")
 
 elif env == "prod":
-    st.set_page_config(page_title="Production Environment")
-    st.markdown("<body style='background-color: lightcoral;'></body>", unsafe_allow_html=True)
+    page_title = "Production Environment"
+    bg_color = "lightcoral"
     st.title("🚀 Production Environment")
-    st.error("✅ Connected with API Key for Prod")
+    st.error("✅ Connected to Prod environment")
 
 else:
     st.title("❓ Unknown Environment")
 
-# Never print the actual API key, just confirm presence
-if api_key == "no-key":
+# Set page title and background
+st.set_page_config(page_title=page_title)
+st.markdown(f"<body style='background-color: {bg_color};'></body>", unsafe_allow_html=True)
+
+# Secret key check (do not print actual key)
+if not api_key:
     st.error("❌ No API key found (check secrets configuration).")
 else:
-    st.info(f"🔒 Secret for {env} environment is configured properly.")
+    st.info(f"🔒 Secret for {env.upper()} environment is configured properly.")
+    st.write(f"API key length: {len(api_key)} characters")  # safe debug
+
